@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O OPME Hub agora possui um sistema completo de convites para adicionar novos usuários à sua organização. Este sistema permite que administradores convidem pessoas para se juntarem à equipe através de e-mail.
+O HUB OPME agora possui um sistema completo de convites para adicionar novos usuários à sua organização. Este sistema permite que administradores convidem pessoas para se juntarem à equipe através de e-mail.
 
 ## Arquitetura Multi-Tenant
 

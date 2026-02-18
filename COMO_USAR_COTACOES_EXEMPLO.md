@@ -111,7 +111,7 @@ PED-2026-002  | Implante de Stent Coronariano       | Maria Santos    | pending 
 
 ### **Após Executar o Script:**
 
-1. **Recarregue a página** do OPME Hub
+1. **Recarregue a página** do HUB OPME
 2. Vá em **Cotações** no menu lateral
 3. Você verá as **10 cotações** na lista
 

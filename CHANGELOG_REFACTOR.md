@@ -66,13 +66,13 @@
 - "Sistema de Gestão de Cotações OPME"
 - "Gerencie suas cotações OPME com eficiência"
 - "Plataforma completa para hospitais, clínicas e fornecedores"
-- "500+ hospitais confiam no OPME Hub"
+- "500+ hospitais confiam no HUB OPME"
 
 **AGORA:**
 - "Plataforma para Fornecedores e Distribuidores OPME"
 - "Responda cotações e aumente suas vendas"
 - "Plataforma completa para fornecedores e distribuidores de OPME"
-- "200+ fornecedores usam o OPME Hub"
+- "200+ fornecedores usam o HUB OPME"
 
 #### **Benefícios Destacados**
 **ANTES:**

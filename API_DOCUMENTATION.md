@@ -1,8 +1,8 @@
-# OPME Hub - Documentação da API
+# HUB OPME - Documentação da API
 
 ## 📋 Visão Geral
 
-A API do OPME Hub permite integração completa com sistemas externos para gerenciamento de cotações de OPME. Todas as requisições requerem autenticação via Bearer Token do Supabase.
+A API do HUB OPME permite integração completa com sistemas externos para gerenciamento de cotações de OPME. Todas as requisições requerem autenticação via Bearer Token do Supabase.
 
 ## 🔐 Autenticação
 

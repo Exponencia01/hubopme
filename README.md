@@ -1,4 +1,4 @@
-# OPME Hub - Sistema de Gestão de Cotações OPME
+# HUB OPME - Sistema de Gestão de Cotações OPME
 
 Sistema completo para gerenciamento de cotações de Órteses, Próteses e Materiais Especiais (OPME), desenvolvido com React, TypeScript, Vite e Supabase.
 

@@ -2,7 +2,7 @@
 
 ## 🎯 Conceito do Sistema
 
-### **O que é o OPME Hub?**
+### **O que é o HUB OPME?**
 Plataforma para **fornecedores e distribuidores de OPME** gerenciarem cotações recebidas de hospitais e clínicas.
 
 ### **Fluxo de Trabalho:**
@@ -10,7 +10,7 @@ Plataforma para **fornecedores e distribuidores de OPME** gerenciarem cotações
 ```
 Hospital/Clínica → Cria Cotação → Envia para Fornecedores
                                           ↓
-                                   OPME Hub (Você)
+                                   HUB OPME (Você)
                                           ↓
                               Recebe → Analisa → Responde
 ```

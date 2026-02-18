@@ -93,7 +93,7 @@ export default function Login() {
                 <Heart className="w-8 h-8 text-white" fill="white" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900">OPME Hub</h1>
+            <h1 className="text-4xl font-bold text-gray-900">HUB OPME</h1>
             <p className="text-gray-600">Plataforma para Fornecedores e Distribuidores OPME</p>
           </div>
 
@@ -294,7 +294,7 @@ export default function Login() {
 
           <div className="pt-8 border-t border-white/20">
             <p className="text-sm text-blue-100">
-              Mais de <span className="font-bold text-white">200+ fornecedores</span> usam o OPME Hub
+              Mais de <span className="font-bold text-white">200+ fornecedores</span> usam o HUB OPME
             </p>
           </div>
         </div>

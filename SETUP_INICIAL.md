@@ -1,4 +1,4 @@
-# Setup Inicial - OPME Hub
+# Setup Inicial - HUB OPME
 
 ## 🚀 Configuração Inicial do Sistema
 

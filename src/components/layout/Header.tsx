@@ -17,7 +17,7 @@ export default function Header() {
     <header className="bg-white border-b border-gray-200 h-16 fixed top-0 left-0 right-0 z-50">
       <div className="h-full px-6 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-primary">OPME Hub</h1>
+          <h1 className="text-2xl font-bold text-primary">HUB OPME</h1>
         </div>
 
         <div className="flex items-center space-x-4">
