@@ -282,4 +282,4 @@ Para dúvidas e suporte:
 
 ---
 
-Desenvolvido com ❤️ para otimizar o processo de cotação de OPME no Brasil.
+Desenvolvido para otimizar o processo de cotação de OPME no Brasil.

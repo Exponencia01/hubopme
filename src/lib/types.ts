@@ -272,6 +272,34 @@ export interface Notification {
   created_at: string;
 }
 
+export interface UserInvitation {
+  id: string;
+  organization_id: string;
+  email: string;
+  full_name: string;
+  role: 'admin' | 'buyer' | 'specialist' | 'reviewer' | 'supplier_admin' | 'supplier_user';
+  phone?: string;
+  invited_by: string;
+  invited_at: string;
+  expires_at: string;
+  invitation_token: string;
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
+  accepted_at?: string;
+  accepted_by?: string;
+  cancelled_at?: string;
+  cancelled_by?: string;
+  cancellation_reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateInvitationPayload {
+  email: string;
+  full_name: string;
+  role: 'admin' | 'buyer' | 'specialist' | 'reviewer' | 'supplier_admin' | 'supplier_user';
+  phone?: string;
+}
+
 export interface ApiResponse<T> {
   data?: T;
   error?: string;

@@ -9,6 +9,7 @@ import QuotationDetail from '@/pages/QuotationDetail';
 import Suppliers from '@/pages/Suppliers';
 import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
+import AcceptInvitation from '@/pages/AcceptInvitation';
 
 function App() {
   const { user, isLoading, setUser, setLoading } = useAuthStore();
@@ -53,23 +54,28 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <Login />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="quotations" element={<Quotations />} />
-          <Route path="quotations/:id" element={<QuotationDetail />} />
-          <Route path="customers" element={<Suppliers />} />
-          <Route path="products" element={<Dashboard />} />
-          <Route path="pricing" element={<Dashboard />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
+        {/* Public route for invitation acceptance */}
+        <Route path="/accept-invitation" element={<AcceptInvitation />} />
+        
+        {/* Login route */}
+        {!user && <Route path="*" element={<Login />} />}
+        
+        {/* Protected routes */}
+        {user && (
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="quotations" element={<Quotations />} />
+            <Route path="quotations/:id" element={<QuotationDetail />} />
+            <Route path="customers" element={<Suppliers />} />
+            <Route path="products" element={<Dashboard />} />
+            <Route path="pricing" element={<Dashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        )}
       </Routes>
     </BrowserRouter>
   );

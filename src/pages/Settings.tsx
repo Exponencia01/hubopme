@@ -4,14 +4,20 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
-import { Building2, User, Bell, Shield, Package } from 'lucide-react';
+import { Building2, User, Bell, Shield, Package, Users } from 'lucide-react';
+import UsersSettings from '@/components/settings/UsersSettings';
+import { useAuthStore } from '@/lib/store';
 
 export default function Settings() {
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('organization');
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'supplier_admin';
 
   const tabs = [
     { id: 'organization', name: 'Organização', icon: Building2 },
     { id: 'profile', name: 'Perfil', icon: User },
+    ...(isAdmin ? [{ id: 'users', name: 'Usuários', icon: Users }] : []),
     { id: 'modules', name: 'Módulos', icon: Package },
     { id: 'notifications', name: 'Notificações', icon: Bell },
     { id: 'security', name: 'Segurança', icon: Shield },
@@ -47,6 +53,7 @@ export default function Settings() {
         <div className="flex-1">
           {activeTab === 'organization' && <OrganizationSettings />}
           {activeTab === 'profile' && <ProfileSettings />}
+          {activeTab === 'users' && <UsersSettings />}
           {activeTab === 'modules' && <ModulesSettings />}
           {activeTab === 'notifications' && <NotificationSettings />}
           {activeTab === 'security' && <SecuritySettings />}
