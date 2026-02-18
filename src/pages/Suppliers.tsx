@@ -90,7 +90,7 @@ export default function Suppliers() {
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center space-x-1">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm font-medium">{supplier.rating.toFixed(1)}</span>
+                    <span className="text-sm font-medium">{supplier.rating?.toFixed(1) || '0.0'}</span>
                   </div>
                   <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
                     {supplier.status === 'active' ? 'Ativo' : 'Inativo'}

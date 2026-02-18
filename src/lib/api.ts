@@ -246,26 +246,31 @@ export const responsesApi = {
 
     if (itemsError) throw itemsError;
 
-    await supabase
-      .from('quotation_distributions')
-      .update({ 
-        status: 'responded',
-        responded_at: new Date().toISOString(),
-      })
-      .eq('id', response.distribution_id);
+    if (response.quote_id) {
+      await supabase
+        .from('quotation_distributions')
+        .update({ 
+          status: 'responded',
+          responded_at: new Date().toISOString(),
+        })
+        .eq('quote_id', response.quote_id);
+    }
 
-    await supabase
-      .from('quotation_requests')
-      .update({ status: 'received_quotes' })
-      .eq('id', response.quotation_request_id);
+    if (response.quote_id) {
+      await supabase
+        .from('quotation_requests')
+        .update({ status: 'received_quotes' })
+        .eq('id', response.quote_id);
+    }
 
     return responseData;
   },
 
-  async update(id: string, updates: Partial<QuoteResponse>) {
+  async update(responseId: string, updates: Partial<QuoteResponse>) {
     const { data, error } = await supabase
       .from('quotation_responses')
       .update(updates)
+      .eq('id', responseId)
       .select()
       .single();
 
@@ -285,7 +290,7 @@ export const responsesApi = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as QuotationResponse[];
+    return data as QuoteResponse[];
   },
 
   async acceptResponse(responseId: string) {

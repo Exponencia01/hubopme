@@ -34,7 +34,7 @@ export default function Header() {
             <div className="text-right">
               <p className="text-sm font-medium">{user?.full_name}</p>
               <p className="text-xs text-gray-500">
-                {user?.organization?.name || user?.supplier?.name}
+                {user?.organization_id || 'Organização'}
               </p>
             </div>
             <Button variant="ghost" size="icon">

@@ -30,7 +30,6 @@ export async function uploadFile(options: UploadFileOptions): Promise<FileMetada
 
   // Gerar nome único para o arquivo
   const timestamp = Date.now();
-  const fileExt = file.name.split('.').pop();
   const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
   
   // Construir path: /{organization_id}/{quote_id}/{folder}/{filename}
