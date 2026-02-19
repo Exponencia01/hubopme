@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, Package, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Package, Settings, UserCircle, DollarSign, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
@@ -7,6 +7,9 @@ const navigation = [
   { name: 'Cotações', href: '/quotations', icon: FileText },
   { name: 'Clientes', href: '/customers', icon: Users },
   { name: 'Produtos', href: '/products', icon: Package },
+  { name: 'Médicos', href: '/doctors', icon: UserCircle },
+  { name: 'Tabela de Preços', href: '/price-tables', icon: DollarSign },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
 

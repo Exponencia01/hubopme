@@ -12,6 +12,8 @@ import { useAuthStore } from '@/lib/store';
 import FileUpload from '@/components/common/FileUpload';
 import { listFiles, downloadFile, deleteFile, formatFileSize, type FileMetadata } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
+import QuoteHistoryTimeline from '@/components/quotes/QuoteHistoryTimeline';
+import BillingPendingCard from '@/components/quotes/BillingPendingCard';
 
 export default function QuotationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +26,6 @@ export default function QuotationDetail() {
   const [documents, setDocuments] = useState<FileMetadata[]>([]);
   const [preSurgicalFiles, setPreSurgicalFiles] = useState<FileMetadata[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
-  const [showDocUpload, setShowDocUpload] = useState(false);
   const [showPreSurgicalUpload, setShowPreSurgicalUpload] = useState(false);
 
   // Definir todas as funções antes dos hooks
@@ -72,28 +73,6 @@ export default function QuotationDetail() {
     );
   }
 
-  const handleDocumentUpload = async (file: FileMetadata) => {
-    // Adicionar à lista local
-    setDocuments(prev => [...prev, file]);
-    
-    // Atualizar no banco de dados
-    const updatedDocuments = [...(quotation.documents || []), {
-      id: file.id,
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      url: file.url,
-      uploaded_at: file.uploaded_at,
-    }];
-
-    await supabase
-      .from('quotes')
-      .update({ documents: updatedDocuments })
-      .eq('id', quotation.id);
-
-    setShowDocUpload(false);
-  };
-
   const handlePreSurgicalUpload = async (file: FileMetadata) => {
     // Adicionar à lista local
     setPreSurgicalFiles(prev => [...prev, file]);
@@ -106,6 +85,7 @@ export default function QuotationDetail() {
       size: file.size,
       url: file.url,
       uploaded_at: file.uploaded_at,
+      description: '', // Inicializar com descrição vazia
     }];
 
     await supabase
@@ -114,6 +94,31 @@ export default function QuotationDetail() {
       .eq('id', quotation.id);
 
     setShowPreSurgicalUpload(false);
+  };
+
+  const handleUpdateFileDescription = async (fileId: string, description: string) => {
+    try {
+      // Atualizar descrição no array de arquivos
+      const updatedFiles = (quotation.pre_surgical_files || []).map((f: any) => 
+        f.id === fileId ? { ...f, description } : f
+      );
+
+      // Salvar no banco de dados
+      await supabase
+        .from('quotes')
+        .update({ pre_surgical_files: updatedFiles })
+        .eq('id', quotation.id);
+
+      // Atualizar estado local
+      setPreSurgicalFiles(prev => 
+        prev.map(f => f.id === fileId ? { ...f, description } as any : f)
+      );
+
+      console.log('Descrição salva com sucesso');
+    } catch (error) {
+      console.error('Erro ao salvar descrição:', error);
+      alert('Erro ao salvar descrição');
+    }
   };
 
   const handleDownload = async (bucket: 'quote-documents' | 'pre-surgical-files', filePath: string, fileName: string) => {
@@ -268,10 +273,6 @@ export default function QuotationDetail() {
                   <p className="font-medium">{quotation.carater_internacao}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">CNPJ</p>
-                  <p className="font-medium">N/A</p>
-                </div>
-                <div>
                   <p className="text-sm text-gray-600">Encerramento da Cotação</p>
                   <p className="font-medium">{formatDate(quotation.encerramento_cotacao)}</p>
                 </div>
@@ -301,6 +302,18 @@ export default function QuotationDetail() {
                   <p className="text-sm text-gray-600">Local da Cirurgia</p>
                   <p className="font-medium">{quotation.surgery_location}</p>
                 </div>
+                {quotation.hospital_name && (
+                  <div>
+                    <p className="text-sm text-gray-600">Hospital</p>
+                    <p className="font-medium">{quotation.hospital_name}</p>
+                  </div>
+                )}
+                {quotation.hospital_cnpj && (
+                  <div>
+                    <p className="text-sm text-gray-600">CNPJ do Hospital</p>
+                    <p className="font-medium">{quotation.hospital_cnpj}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-600">Operadora</p>
                   <p className="font-medium">{quotation.operadora}</p>
@@ -324,6 +337,10 @@ export default function QuotationDetail() {
                 <div>
                   <p className="text-sm text-gray-600">CRM/UF</p>
                   <p className="font-medium">{quotation.crm_uf}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-600">CNPJ</p>
+                  <p className="font-medium">{quotation.organization?.cnpj || 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
@@ -520,49 +537,99 @@ export default function QuotationDetail() {
             </CardContent>
           </Card>
 
+          {/* Card: Dados de Faturamento - Fonte Pagadora */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Dados de Faturamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {quotation.billing_data && Object.keys(quotation.billing_data).length > 0 ? (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Fonte Pagadora</p>
+                    <p className="font-medium">{quotation.billing_data.payer_name || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">CNPJ da Fonte Pagadora</p>
+                    <p className="font-medium">{quotation.billing_data.payer_cnpj || 'Não informado'}</p>
+                  </div>
+                  {quotation.billing_data.payer_type && (
+                    <div>
+                      <p className="text-sm text-gray-600">Tipo</p>
+                      <p className="font-medium">
+                        {quotation.billing_data.payer_type === 'insurance' ? 'Convênio/Plano de Saúde' :
+                         quotation.billing_data.payer_type === 'hospital' ? 'Hospital' :
+                         quotation.billing_data.payer_type === 'patient' ? 'Particular' :
+                         quotation.billing_data.payer_type}
+                      </p>
+                    </div>
+                  )}
+                  {quotation.billing_data.payment_terms && (
+                    <div>
+                      <p className="text-sm text-gray-600">Condições de Pagamento</p>
+                      <p className="font-medium">{quotation.billing_data.payment_terms}</p>
+                    </div>
+                  )}
+                  {quotation.billing_data.contact_name && (
+                    <div>
+                      <p className="text-sm text-gray-600">Contato para Faturamento</p>
+                      <p className="font-medium">{quotation.billing_data.contact_name}</p>
+                    </div>
+                  )}
+                  {quotation.billing_data.contact_phone && (
+                    <div>
+                      <p className="text-sm text-gray-600">Telefone</p>
+                      <p className="font-medium">{quotation.billing_data.contact_phone}</p>
+                    </div>
+                  )}
+                  {quotation.billing_data.contact_email && (
+                    <div>
+                      <p className="text-sm text-gray-600">E-mail</p>
+                      <p className="font-medium">{quotation.billing_data.contact_email}</p>
+                    </div>
+                  )}
+                  {quotation.billing_data.notes && (
+                    <div>
+                      <p className="text-sm text-gray-600">Observações</p>
+                      <p className="text-sm whitespace-pre-wrap">{quotation.billing_data.notes}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">Nenhum dado de faturamento cadastrado</p>
+              )}
+              {quotation.billing_status && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-gray-600 mb-2">Status de Faturamento</p>
+                  <Badge className={
+                    quotation.billing_status === 'billed' ? 'bg-green-100 text-green-800' :
+                    quotation.billing_status === 'authorized' ? 'bg-blue-100 text-blue-800' :
+                    quotation.billing_status === 'pending_items' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }>
+                    {quotation.billing_status === 'billed' ? 'Faturado' :
+                     quotation.billing_status === 'authorized' ? 'Autorizado' :
+                     quotation.billing_status === 'pending_items' ? 'Pendente' :
+                     'Aguardando'}
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Card: Documentos do Hospital */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Documentos do Hospital
-                </div>
-                {!showDocUpload && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowDocUpload(true)}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
-                )}
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Documentos do Hospital
               </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Documentos incluídos na cotação</p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Upload Component */}
-              {showDocUpload && user?.organization_id && (
-                <div className="border-t pt-4">
-                  <FileUpload
-                    bucket="quote-documents"
-                    organizationId={user.organization_id}
-                    quoteId={quotation.id}
-                    onUploadComplete={handleDocumentUpload}
-                    onUploadError={(error) => console.error(error)}
-                    maxFiles={10}
-                    currentFilesCount={documents.length}
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowDocUpload(false)}
-                    className="mt-2"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              )}
 
               {/* Lista de Arquivos */}
               {loadingFiles ? (
@@ -601,9 +668,9 @@ export default function QuotationDetail() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Upload className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">Nenhum documento anexado</p>
-                  <p className="text-gray-400 text-xs mt-1">Clique em "Adicionar" para fazer upload</p>
+                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">Nenhum documento incluído na cotação</p>
+                  <p className="text-gray-400 text-xs mt-1">Os documentos são incluídos automaticamente pela cotação</p>
                 </div>
               )}
             </CardContent>
@@ -628,6 +695,9 @@ export default function QuotationDetail() {
                   </Button>
                 )}
               </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">
+                Adicione descrições aos arquivos para facilitar a organização
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Upload Component */}
@@ -659,31 +729,55 @@ export default function QuotationDetail() {
                   <p className="text-gray-500 text-sm">Carregando arquivos...</p>
                 </div>
               ) : preSurgicalFiles.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {preSurgicalFiles.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <div key={file.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{file.name}</p>
-                          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium truncate">{file.name}</p>
+                              <p className="text-xs text-gray-500 mt-1">{formatFileSize(file.size)}</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDownload('pre-surgical-files', file.id, file.name)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDelete('pre-surgical-files', file.id, file.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Campo de Descrição Editável */}
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Descrição do Arquivo
+                            </label>
+                            <textarea
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              rows={2}
+                              placeholder="Adicione uma descrição para este arquivo (ex: Exames pré-operatórios, Autorização do convênio, etc.)"
+                              defaultValue={(file as any).description || ''}
+                              onBlur={(e) => {
+                                const description = e.target.value;
+                                handleUpdateFileDescription(file.id, description);
+                              }}
+                            />
+                            <p className="text-xs text-gray-400 mt-1">
+                              A descrição é salva automaticamente ao sair do campo
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDownload('pre-surgical-files', file.id, file.name)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDelete('pre-surgical-files', file.id, file.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
                       </div>
                     </div>
                   ))}
@@ -697,6 +791,9 @@ export default function QuotationDetail() {
               )}
             </CardContent>
           </Card>
+
+          {/* Histórico de Ações */}
+          <QuoteHistoryTimeline quoteId={quotation.id} />
         </div>
 
         {/* COLUNA DIREITA - 1/3 */}
@@ -753,6 +850,9 @@ export default function QuotationDetail() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Card: Pendências de Faturamento */}
+          <BillingPendingCard quoteId={quotation.id} quotation={quotation} />
 
           <Card>
             <CardHeader>

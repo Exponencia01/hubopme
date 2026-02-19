@@ -57,6 +57,7 @@ export interface Product {
 export interface Quote {
   id: string;
   organization_id: string;
+  organization?: Organization;
   
   // Identificação
   pedido_id: string;
@@ -83,8 +84,13 @@ export interface Quote {
   medico: string;
   crm_uf: string;
   
+  // Hospital (NOVO)
+  hospital_name?: string;
+  hospital_cnpj?: string;
+  
   // Status
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'expired';
+  billing_status?: 'pending' | 'authorized' | 'billed' | 'pending_items';
   
   // Dados Estruturados
   procedures: any[];
@@ -97,6 +103,20 @@ export interface Quote {
   observacao_comprador?: string;
   discount: any;
   provider_conditions: any;
+  
+  // Faturamento (NOVO) - Fonte Pagadora
+  billing_data?: {
+    payer_name?: string;           // Nome da fonte pagadora
+    payer_cnpj?: string;           // CNPJ da fonte pagadora
+    payer_type?: 'insurance' | 'hospital' | 'patient' | 'other'; // Tipo: Convênio, Hospital, Particular
+    payment_terms?: string;        // Condições de pagamento
+    contact_name?: string;         // Contato para faturamento
+    contact_phone?: string;        // Telefone do contato
+    contact_email?: string;        // E-mail do contato
+    notes?: string;                // Observações
+  };
+  total_value?: number;
+  billed_value?: number;
   
   // Resposta
   response_id?: string;
@@ -300,8 +320,316 @@ export interface CreateInvitationPayload {
   phone?: string;
 }
 
+// =====================================================
+// MÓDULO: MÉDICOS
+// =====================================================
+
+export interface Doctor {
+  id: string;
+  organization_id: string;
+  full_name: string;
+  cpf?: string;
+  rg?: string;
+  birth_date?: string;
+  crm: string;
+  crm_uf: string;
+  specialties: string[];
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  address?: {
+    street?: string;
+    number?: string;
+    complement?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    zip_code?: string;
+  };
+  hospitals?: Array<{
+    name: string;
+    city: string;
+    state: string;
+  }>;
+  relationship_type: 'active' | 'inactive' | 'prospect';
+  relationship_notes?: string;
+  first_contact_date?: string;
+  last_contact_date?: string;
+  preferred_products?: string[];
+  notes?: string;
+  is_active: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateDoctorPayload {
+  full_name: string;
+  cpf?: string;
+  rg?: string;
+  birth_date?: string;
+  crm: string;
+  crm_uf: string;
+  specialties?: string[];
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  address?: Doctor['address'];
+  hospitals?: Doctor['hospitals'];
+  relationship_type?: 'active' | 'inactive' | 'prospect';
+  relationship_notes?: string;
+  first_contact_date?: string;
+  notes?: string;
+}
+
+// =====================================================
+// MÓDULO: TABELA DE PREÇOS
+// =====================================================
+
+export interface PriceTable {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  code?: string;
+  table_type: 'standard' | 'promotional' | 'special' | 'contract';
+  category?: string;
+  valid_from?: string;
+  valid_until?: string;
+  is_active: boolean;
+  is_default: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PriceTableItem {
+  id: string;
+  price_table_id: string;
+  organization_id: string;
+  product_code: string;
+  product_name: string;
+  product_description?: string;
+  manufacturer?: string;
+  category?: string;
+  subcategory?: string;
+  unit_of_measure: string;
+  package_quantity: number;
+  cost_price?: number;
+  list_price: number;
+  min_price?: number;
+  max_discount_percent: number;
+  anvisa_registration?: string;
+  sus_code?: string;
+  tuss_code?: string;
+  ncm?: string;
+  stock_quantity: number;
+  lead_time_days?: number;
+  is_available: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePriceTablePayload {
+  name: string;
+  description?: string;
+  code?: string;
+  table_type?: 'standard' | 'promotional' | 'special' | 'contract';
+  category?: string;
+  valid_from?: string;
+  valid_until?: string;
+  is_default?: boolean;
+}
+
+export interface CreatePriceTableItemPayload {
+  price_table_id: string;
+  product_code: string;
+  product_name: string;
+  product_description?: string;
+  manufacturer?: string;
+  category?: string;
+  subcategory?: string;
+  unit_of_measure?: string;
+  package_quantity?: number;
+  cost_price?: number;
+  list_price: number;
+  min_price?: number;
+  max_discount_percent?: number;
+  anvisa_registration?: string;
+  sus_code?: string;
+  tuss_code?: string;
+  ncm?: string;
+  stock_quantity?: number;
+  lead_time_days?: number;
+  notes?: string;
+}
+
+// =====================================================
+// MÓDULO: ANALYTICS
+// =====================================================
+
+export interface AnalyticsDashboard {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  dashboard_type: 'sales' | 'quotes' | 'products' | 'doctors' | 'custom';
+  config?: any;
+  embed_url?: string;
+  allowed_roles: string[];
+  is_public: boolean;
+  display_order: number;
+  is_active: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnalyticsMetric {
+  id: string;
+  organization_id: string;
+  metric_name: string;
+  metric_type: 'count' | 'sum' | 'avg' | 'percentage';
+  period_type: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  period_start: string;
+  period_end: string;
+  metric_value: number;
+  metric_metadata?: any;
+  calculated_at: string;
+  created_at: string;
+}
+
+export interface CreateDashboardPayload {
+  name: string;
+  description?: string;
+  dashboard_type: 'sales' | 'quotes' | 'products' | 'doctors' | 'custom';
+  config?: any;
+  embed_url?: string;
+  allowed_roles?: string[];
+  is_public?: boolean;
+  display_order?: number;
+}
+
 export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+}
+
+// =====================================================
+// MÓDULO: COTAÇÕES APRIMORADAS
+// =====================================================
+
+export type QuoteActionType = 
+  | 'budgeted'           // Orçado
+  | 'authorized'         // Autorizado
+  | 'used_supplier'      // Utilizado (Fornecedor)
+  | 'usage_confirmed'    // Confirmada a Utilização (Comprador)
+  | 'billing_authorized' // Faturamento Autorizado (Comprador)
+  | 'billed'            // Faturado
+  | 'billing_pending'   // Pendente de Faturamento
+  | 'created'           // Criado
+  | 'updated'           // Atualizado
+  | 'cancelled'         // Cancelado
+  | 'comment';          // Comentário
+
+export interface QuoteHistory {
+  id: string;
+  quote_id: string;
+  organization_id: string;
+  action_type: QuoteActionType;
+  description?: string;
+  metadata?: any;
+  performed_by?: string;
+  performed_by_name?: string;
+  performed_by_role?: string;
+  created_at: string;
+}
+
+export type AttachmentType = 
+  | 'pre_surgical'      // Pré-cirúrgico
+  | 'post_surgical'     // Pós-cirúrgico
+  | 'billing_evidence'  // Evidência de faturamento
+  | 'authorization'     // Autorização
+  | 'invoice'          // Nota fiscal
+  | 'receipt'          // Recibo
+  | 'medical_report'   // Relatório médico
+  | 'other';           // Outro
+
+export interface QuoteAttachment {
+  id: string;
+  quote_id: string;
+  organization_id: string;
+  attachment_type: AttachmentType;
+  file_name: string;
+  file_url: string;
+  file_size?: number;
+  file_type?: string;
+  title: string;
+  description?: string;
+  tags?: string[];
+  related_action?: string;
+  uploaded_by?: string;
+  uploaded_by_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteBillingItem {
+  id: string;
+  quote_id: string;
+  organization_id: string;
+  product_name: string;
+  product_code?: string;
+  quantity_budgeted: number;
+  quantity_authorized?: number;
+  quantity_used?: number;
+  quantity_billed?: number;
+  unit_price: number;
+  total_budgeted: number;
+  total_authorized?: number;
+  total_used?: number;
+  total_billed?: number;
+  status: 'pending' | 'partially_billed' | 'fully_billed' | 'cancelled';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BillingPendingSummary {
+  total_items: number;
+  pending_items: number;
+  total_value: number;
+  billed_value: number;
+  pending_value: number;
+}
+
+export interface CreateQuoteHistoryPayload {
+  quote_id: string;
+  action_type: QuoteActionType;
+  description?: string;
+  metadata?: any;
+}
+
+export interface CreateQuoteAttachmentPayload {
+  quote_id: string;
+  attachment_type: AttachmentType;
+  file_name: string;
+  file_url: string;
+  file_size?: number;
+  file_type?: string;
+  title: string;
+  description?: string;
+  tags?: string[];
+  related_action?: string;
+}
+
+export interface CreateBillingItemPayload {
+  quote_id: string;
+  product_name: string;
+  product_code?: string;
+  quantity_budgeted: number;
+  unit_price: number;
+  notes?: string;
 }

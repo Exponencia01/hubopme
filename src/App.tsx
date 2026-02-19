@@ -10,6 +10,9 @@ import Suppliers from '@/pages/Suppliers';
 import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
 import AcceptInvitation from '@/pages/AcceptInvitation';
+import Doctors from '@/pages/Doctors';
+import PriceTables from '@/pages/PriceTables';
+import Analytics from '@/pages/Analytics';
 
 function App() {
   const { user, isLoading, setUser, setLoading } = useAuthStore();
@@ -72,6 +75,9 @@ function App() {
             <Route path="customers" element={<Suppliers />} />
             <Route path="products" element={<Dashboard />} />
             <Route path="pricing" element={<Dashboard />} />
+            <Route path="doctors" element={<Doctors />} />
+            <Route path="price-tables" element={<PriceTables />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
