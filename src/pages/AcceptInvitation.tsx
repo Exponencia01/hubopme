@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
 import { CheckCircle, XCircle, Clock, Building2 } from 'lucide-react';
 import { invitationsApi } from '@/lib/invitations';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +19,9 @@ export default function AcceptInvitation() {
   const [error, setError] = useState('');
   const [isAccepting, setIsAccepting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -30,15 +35,30 @@ export default function AcceptInvitation() {
 
   const loadInvitation = async () => {
     try {
+      console.log('🔍 Carregando convite com token:', token);
       const data = await invitationsApi.getInvitationByToken(token!);
+      console.log('📊 Dados do convite recebidos:', data);
+      
       if (!data) {
+        console.warn('⚠️ Convite não encontrado ou expirado');
         setError('Convite inválido, expirado ou já utilizado');
       } else {
+        console.log('✅ Convite carregado com sucesso:', data);
         setInvitation(data);
       }
     } catch (err) {
-      console.error('Erro ao carregar convite:', err);
-      setError('Erro ao carregar convite');
+      console.error('❌ Erro completo ao carregar convite:', err);
+      console.error('❌ Tipo do erro:', typeof err);
+      console.error('❌ Erro stringificado:', JSON.stringify(err, null, 2));
+      
+      let errorMessage = 'Erro ao carregar convite';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null && 'message' in err) {
+        errorMessage = (err as any).message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -55,8 +75,9 @@ export default function AcceptInvitation() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        // Redirecionar para login com o token
-        navigate(`/login?invitation=${token}`);
+        // Mostrar formulário de registro
+        setShowRegistration(true);
+        setIsAccepting(false);
         return;
       }
 
@@ -81,6 +102,60 @@ export default function AcceptInvitation() {
     } catch (err) {
       console.error('Erro ao aceitar convite:', err);
       setError(err instanceof Error ? err.message : 'Erro ao aceitar convite');
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
+  const handleRegisterAndAccept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invitation) return;
+
+    setError('');
+    setIsAccepting(true);
+
+    // Validar senha
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      setIsAccepting(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem');
+      setIsAccepting(false);
+      return;
+    }
+
+    try {
+      // Criar conta do usuário
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: invitation.email,
+        password: password,
+        options: {
+          data: {
+            full_name: invitation.full_name,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+      if (!signUpData.user) throw new Error('Erro ao criar conta');
+
+      // Aceitar convite
+      const result = await invitationsApi.acceptInvitation(token!);
+      
+      if (result.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+      } else {
+        setError(result.error || 'Erro ao aceitar convite');
+      }
+    } catch (err) {
+      console.error('Erro ao criar conta:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
     } finally {
       setIsAccepting(false);
     }
@@ -149,10 +224,82 @@ export default function AcceptInvitation() {
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
             {invitation.full_name.charAt(0).toUpperCase()}
           </div>
-          <CardTitle className="text-3xl">Você foi convidado!</CardTitle>
+          <CardTitle className="text-3xl">
+            {showRegistration ? 'Criar Conta' : 'Você foi convidado!'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="py-8">
-          <div className="space-y-6">
+          {showRegistration ? (
+            <form onSubmit={handleRegisterAndAccept} className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>Email:</strong> {invitation.email}
+                </p>
+                <p className="text-sm text-blue-800">
+                  <strong>Nome:</strong> {invitation.full_name}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Digite a senha novamente"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              <div className="flex flex-col space-y-3">
+                <Button
+                  type="submit"
+                  disabled={isAccepting}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isAccepting ? 'Criando conta...' : 'Criar Conta e Aceitar Convite'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowRegistration(false)}
+                  className="w-full"
+                >
+                  Voltar
+                </Button>
+              </div>
+
+              <p className="text-xs text-center text-gray-500">
+                Ao criar sua conta, você aceita o convite e terá acesso ao sistema
+                com a função de {invitation.role}.
+              </p>
+            </form>
+          ) : (
+            <div className="space-y-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <div className="flex items-start space-x-4">
                 <Building2 className="h-8 w-8 text-blue-600 mt-1" />
@@ -224,6 +371,7 @@ export default function AcceptInvitation() {
               e terá acesso ao sistema conforme a função atribuída.
             </p>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

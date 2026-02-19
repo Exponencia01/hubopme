@@ -122,6 +122,9 @@ export const invitationsApi = {
   },
 
   async getInvitationByToken(token: string): Promise<UserInvitation | null> {
+    console.log('🔍 getInvitationByToken - Buscando token:', token);
+    console.log('🔍 Data atual:', new Date().toISOString());
+    
     const { data, error } = await supabase
       .from('user_invitations')
       .select('*')
@@ -130,10 +133,22 @@ export const invitationsApi = {
       .gt('expires_at', new Date().toISOString())
       .single();
 
+    console.log('📊 Resultado da query:', { data, error });
+
     if (error) {
-      if (error.code === 'PGRST116') return null;
+      console.error('❌ Erro na query:', error);
+      console.error('❌ Código do erro:', error.code);
+      console.error('❌ Mensagem:', error.message);
+      console.error('❌ Detalhes:', error.details);
+      
+      if (error.code === 'PGRST116') {
+        console.warn('⚠️ Nenhum convite encontrado (PGRST116)');
+        return null;
+      }
       throw error;
     }
+    
+    console.log('✅ Convite encontrado:', data);
     return data as UserInvitation;
   },
 
